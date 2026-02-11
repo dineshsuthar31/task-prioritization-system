@@ -8,11 +8,21 @@ function App() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [systemHealth, setSystemHealth] = useState(null)
 
-  // Fetch tasks from Database on load
   useEffect(() => {
     fetchTasks();
+    checkSystemHealth();
   }, []);
+
+  const checkSystemHealth = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/tasks/health');
+      setSystemHealth(response.data.status);
+    } catch (err) {
+      setSystemHealth('unavailable');
+    }
+  };
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -100,7 +110,14 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1><span className="brand-icon"></span> Task Prioritization System</h1>
-          <p>Optimize your workflow with intelligent task scoring.</p>
+          <div className="header-right">
+            {systemHealth && (
+              <span className={`health-status ${systemHealth}`}>
+                System: {systemHealth}
+              </span>
+            )}
+            <p className="app-subtitle">Optimize your workflow with intelligent task scoring.</p>
+          </div>
         </div>
       </header>
 

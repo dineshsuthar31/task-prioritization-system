@@ -9,20 +9,11 @@ def calculate_priority(task_data):
     # 1. Feasibility Check (assuming 8 working hours/day)
     # If deadline is 0, we assume it's due today, so we have maybe 8 hours left?
     # Let's say deadline=0 means "Due today".
-    available_hours = max(deadline, 1) * 8 
-    if deadline == 0:
-        available_hours = 8 # Assumption
-    
-    if estimated_time > available_hours:
-        return {
-            **task_data,
-            "priority_score": 0,
-            "category": "Impossible",
-            "reason": "Estimated time exceeds available time."
-        }
-    
+    available_hours = max(deadline, 1) * 8
+    is_feasible = estimated_time <= available_hours
+
+        
     # 2. Urgency Score
-    # Logarithmic or Exponential check? 
     # Use a sharper curve for very close deadlines (0-3 days)
     days = max(deadline, 0)
     if days <= 0:
@@ -57,6 +48,8 @@ def calculate_priority(task_data):
         **task_data,
         "priority_score": final_score,
         "category": category,
+        "feasible": is_feasible,
+        "reason": None if is_feasible else "Estimated time exceeds available time.",
         "details": {
             "urgency_score": round(urgency_score, 2),
             "importance_score": importance_score,

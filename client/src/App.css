@@ -37,23 +37,24 @@
 .app-header {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 2rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .header-content {
-  max-width: 1600px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .app-header h1 {
@@ -74,7 +75,35 @@
   display: inline-block;
 }
 
-.app-header p {
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.health-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.health-status.healthy {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bdf2d0;
+}
+
+.health-status.unavailable {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.app-header p.app-subtitle {
   color: var(--text-muted);
   margin: 0;
   font-size: 0.9rem;
@@ -86,7 +115,6 @@
   flex: 1;
   width: 100%;
   max-width: 1600px;
-  /* Wider container */
   margin: 0 auto;
   padding: 2rem;
   display: grid;
@@ -97,7 +125,6 @@
 @media (min-width: 1024px) {
   .app-content {
     grid-template-columns: 400px 1fr;
-    /* Sidebar-like layout for form */
     align-items: start;
   }
 }
@@ -354,6 +381,26 @@
   /* Space for buttons (2x30px + gaps) */
 }
 
+.title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.warning-badge-inline {
+  color: #ef4444;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef2f2;
+  padding: 2px 6px;
+  border-radius: 4px;
+  width: fit-content;
+  border: 1px solid #fee2e2;
+}
+
 .task-header h4 {
   font-size: 1.1rem;
   font-weight: 700;
@@ -521,6 +568,12 @@
   font-weight: 800;
 }
 
+.score-placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.5;
+  font-weight: 400 !important;
+}
+
 
 .reason-box {
   margin-top: 1rem;
@@ -569,13 +622,80 @@
   color: #ef4444;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .app-content {
     grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
   }
 
   .task-form-container {
     position: static;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-right {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .app-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .task-cards {
+    grid-template-columns: 1fr;
+    /* Single column on mobile */
+  }
+
+  .task-list-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-content {
+    padding: 1rem;
+  }
+
+  .task-form-container {
+    padding: 1.25rem;
+  }
+
+  .task-input-row {
+    gap: 0.75rem;
+  }
+
+  .task-card {
+    padding: 1.25rem;
+  }
+
+  .task-header {
+    padding-right: 80px;
+  }
+
+  .task-header h4 {
+    font-size: 1rem;
+  }
+
+  .detail-value.big-score {
+    font-size: 1.5rem;
+  }
+
+  .individual-prioritize-btn-large {
+    padding: 0.6rem;
+    font-size: 0.85rem;
   }
 }

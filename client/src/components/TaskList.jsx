@@ -27,9 +27,7 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                 return { bg: '#ffedd5', border: '#f97316', badge: '#c2410c' };
             case 'Low Priority':
                 return { bg: '#dcfce7', border: '#22c55e', badge: '#15803d' };
-            case 'Impossible':
-                return { bg: '#f1f5f9', border: '#64748b', badge: '#475569' };
-            default: // Pending
+            default:
                 return { bg: '#ffffff', border: '#e2e8f0', badge: '#94a3b8' };
         }
     };
@@ -74,9 +72,16 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                             </div>
 
                             <div className="task-header">
-                                <h4 style={{ textDecoration: isCompleted ? 'line-through' : 'none' }}>
-                                    {task.title}
-                                </h4>
+                                <div className="title-area">
+                                    <h4 style={{ textDecoration: isCompleted ? 'line-through' : 'none' }}>
+                                        {task.title}
+                                    </h4>
+                                    {task.is_feasible === false && !isCompleted && (
+                                        <div className="warning-badge-inline">
+                                            ⚠️ Insufficient Time
+                                        </div>
+                                    )}
+                                </div>
                                 <span className="priority-badge" style={{
                                     backgroundColor: isPending ? '#f1f5f9' : 'rgba(255,255,255,0.8)',
                                     color: styles.badge,
@@ -89,7 +94,9 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                             <div className="task-details">
                                 <div className="detail-item prime-score">
                                     <span className="detail-label">Score</span>
-                                    <span className="detail-value big-score">{task.priority_score}</span>
+                                    <span className={`detail-value big-score ${!task.priority_score ? 'score-placeholder' : ''}`}>
+                                        {task.priority_score > 0 ? task.priority_score : '--'}
+                                    </span>
                                 </div>
                                 <div className="detail-item">
                                     <span className="detail-label">Deadline</span>
@@ -118,7 +125,7 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                             )}
 
                             {/* Breakdown Toggle */}
-                            {!isPending && !isCompleted && task.category !== 'Impossible' && (
+                            {!isPending && !isCompleted && task.is_feasible !== false && (
                                 <div className="breakdown-section">
                                     <button
                                         className="toggle-breakdown"
@@ -127,20 +134,20 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                                         {isExpanded ? 'Hide Priority Logic ▲' : 'See Priority Logic ▼'}
                                     </button>
 
-                                    {isExpanded && (
+                                    {isExpanded && task.priority_details && (
                                         <div className="score-breakdown">
                                             <p><strong>Why this score?</strong></p>
                                             <div className="breakdown-row">
                                                 <span>Urgency (45%)</span>
-                                                <span className="score-val">+{((task.deadline <= 0 ? 100 : task.deadline <= 2 ? 90 - task.deadline * 10 : 100 / (task.deadline * 0.5 + 1)) * 0.45).toFixed(1)}</span>
+                                                <span className="score-val">+{(task.priority_details.urgency_score * 0.45).toFixed(1)}</span>
                                             </div>
                                             <div className="breakdown-row">
                                                 <span>Importance (45%)</span>
-                                                <span className="score-val">+{(task.importance * 10 * 0.45).toFixed(1)}</span>
+                                                <span className="score-val">+{(task.priority_details.importance_score * 0.45).toFixed(1)}</span>
                                             </div>
                                             <div className="breakdown-row">
                                                 <span>Effort (10%)</span>
-                                                <span className="score-val">{((100 / (Math.max(task.estimated_time, 0.5) + 1)) * 0.10).toFixed(1)}</span>
+                                                <span className="score-val">+{(task.priority_details.effort_score * 0.10).toFixed(1)}</span>
                                             </div>
                                             <div className="breakdown-total">
                                                 <span>Calculated Total</span>
@@ -151,7 +158,7 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                                 </div>
                             )}
 
-                            {task.category === 'Impossible' && (
+                            {task.is_feasible === false && (
                                 <div className="reason-box">
                                     <span className="reason-label">Why Impossible:</span> {task.reason}
                                 </div>

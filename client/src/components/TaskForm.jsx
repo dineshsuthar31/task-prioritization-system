@@ -77,7 +77,7 @@ const TaskForm = ({ onAdd, onPrioritize, pendingCount, isLoading }) => {
 
             {pendingCount > 0 && (
                 <div className="prioritize-action">
-                    <p>{pendingCount} tasks in database</p>
+                    <p>{pendingCount} tasks</p>
                     <button onClick={onPrioritize} className="prioritize-btn" disabled={isLoading}>
                         {isLoading ? 'Prioritizing...' : 'Prioritize All Tasks'}
                     </button>
