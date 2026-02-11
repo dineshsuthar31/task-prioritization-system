@@ -1,48 +1,237 @@
 # Task Prioritization System
 
 ## Project Overview
-A productivity application designed to help users intelligently prioritize their workload. It uses a weighted formula to analyze Urgency, Importance, and Effort, ensuring that "Quick Wins" and "Critical Tasks" surface at the top.
+
+The Task Prioritization System is a productivity-focused web application designed to intelligently rank tasks using a deterministic weighted scoring algorithm.
+
+Each task is evaluated based on:
+
+- Urgency (deadline proximity)
+- Importance (business impact)
+- Effort (estimated time required)
+
+The system assigns a priority score between **0 and 100**, classifies tasks into predefined categories, and flags infeasible tasks when they cannot realistically be completed before their deadline.
+
+---
 
 ## Architecture
-- **Backend**: Django REST Framework (Python).
-  - Business logic is isolated in `tasks/logic.py`.
-  - Persistence Layer: SQLite (Chosen for simplicity, zero-config, and file-based portability suitable for a small productivity tool).
-- **Frontend**: React (Vite) + Vanilla CSS.
-  - Interactive dashboard with real-time feedback and priority breakdowns.
 
-## Schema Design (SQLite)
-The system uses a `Task` table with the following significant fields:
-- `is_completed`: Boolean to distinguish active vs. finished work.
-- `priority_score`: Computed float (0-100).
-- `category`: Classification (High, Medium, Low, Impossible).
-- `deadline`, `estimated_time`, `importance`: Raw input metrics.
+### Backend
+- **Framework:** Django + Django REST Framework
+- **Business Logic Isolation:** `tasks/logic.py`
+- **Database:** SQLite (chosen for simplicity, zero configuration, and portability)
 
-## Prioritization Logic (Weighted Sum)
-The priority score is calculated using the following weights:
-- **Urgency (45%)**: Sharper exponential decay for 0-2 days, smoother logarithmic decay for 3+ days.
-- **Importance (45%)**: Linear normalization of the 1-10 scale.
-- **Effort (10%)**: Minor factor to favor "Quick Wins" (shorter tasks) when other factors are equal.
+Layers:
+- Models → Persistence
+- Serializers → Validation
+- Views → API Layer
+- Logic → Pure deterministic scoring engine
 
-### Edge Case Handling
-- **Deadlines of zero**: Treated as "Immediate" with maximum Urgency (100).
-- **Impossible Tasks**: If `estimated_time > (deadline * 8)`, the task is flagged as "Impossible" because it cannot be finished within standard working hours before the deadline.
-- **Ties**: Resolved by strictly sorting by: Score (Desc) -> Deadline (Asc) -> Importance (Desc).
+### Frontend
+- **Framework:** React (Vite)
+- **Package Manager:** Yarn
+- Interactive dashboard with:
+  - Real-time task prioritization
+  - Score breakdown display
+  - Feasibility warnings
+  - Completion tracking
+
+---
+
+## Database Schema (Task Model)
+
+| Field | Type | Description |
+|-------|------|------------|
+| title | String | Task description |
+| deadline | Integer | Days remaining |
+| estimated_time | Float | Required hours |
+| importance | Integer (1–10) | Business priority |
+| priority_score | Float | Computed (0–100) |
+| category | String | High / Medium / Low |
+| feasible | Boolean | Indicates if task can be completed before deadline |
+| is_completed | Boolean | Task completion status |
+| created_at | DateTime | Auto timestamp |
+
+---
+
+## Prioritization Logic
+
+### Weighted Scoring Formula
+
+Final Score:
+
+```
+Final Score =
+(Importance Score × 0.45) +
+(Urgency Score × 0.45) +
+(Effort Score × 0.10)
+```
+
+### Score Components
+
+#### 1. Urgency (45%)
+- Deadline = 0 → 100
+- 1–2 days → sharp decay
+- 3+ days → smooth decay curve
+
+#### 2. Importance (45%)
+- Normalized from 1–10 scale to 0–100
+
+#### 3. Effort (10%)
+- Shorter tasks receive slightly higher weight (Quick Win bias)
+
+---
+
+## Categorization Rules
+
+| Score Range | Category |
+|-------------|----------|
+| ≥ 70 | High Priority |
+| 40–69 | Medium Priority |
+| < 40 | Low Priority |
+
+---
+
+## Feasibility Rule
+
+A task is flagged as infeasible if:
+
+```
+estimated_time > (deadline × 8 working hours)
+```
+
+Instead of rejecting such tasks, the system:
+- Calculates the score normally
+- Sets `feasible = false`
+- Displays a warning in the UI
+
+This preserves deterministic scoring while providing user awareness.
+
+---
+
+## Edge Case Handling
+
+- Deadline = 0 → Treated as immediate (max urgency)
+- Negative deadline → Validation error
+- Importance outside 1–10 → Validation error
+- Non-positive estimated_time → Validation error
+- Equal scores → Deterministic sorting applied
+
+Sorting order:
+```
+Score (Descending)
+→ Deadline (Ascending)
+→ Importance (Descending)
+```
+
+---
 
 ## API Endpoints
-- `GET /health`: System health status (Global).
-- `POST /tasks/prioritize`:
-  - **Stateless**: Send a JSON list of tasks to get scores in the response.
-  - **Stateful**: Call with an empty body to re-calculate all tasks in the Database.
-- `POST /tasks/validate`: Separates valid/invalid tasks with specific reasons.
-- `GET /tasks/`: List all tasks (Sorted).
-- `POST /tasks/`: Create a new task.
-- `PATCH /tasks/{id}/`: Update status (e.g., mark as completed).
+
+### Health Check
+```
+GET /health
+```
+Returns system status.
+
+---
+
+### Task Validation
+```
+POST /tasks/validate
+```
+Separates valid and invalid tasks with detailed error messages.
+
+Returns:
+- valid_count
+- invalid_count
+- validation reasons
+
+---
+
+### Task Prioritization
+```
+POST /tasks/prioritize
+```
+
+Supports:
+
+- Stateless mode → Send JSON array
+- Stateful mode → Recalculate all DB tasks
+
+Returns scored & categorized tasks.
+
+---
+
+### CRUD Operations
+
+| Method | Endpoint | Purpose |
+|--------|----------|----------|
+| GET | /tasks/ | List tasks |
+| POST | /tasks/ | Create task |
+| PATCH | /tasks/{id}/ | Update task |
+| DELETE | /tasks/{id}/ | Remove task |
+
+---
+
+## HTTP Status Codes
+
+| Code | Meaning |
+|------|--------|
+| 200 | Success |
+| 400 | Validation error |
+| 404 | Task not found |
+| 500 | Internal error |
+
+---
 
 ## Setup Instructions
-1. **Backend**: 
-   - `pip install -r requirements.txt`
-   - `python manage.py migrate`
-   - `python manage.py runserver`
-2. **Frontend**:
-   - `npm install`
-   - `npm run dev`
+
+### Backend
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+Runs at:
+```
+http://127.0.0.1:8000
+```
+
+---
+
+### Frontend (Yarn)
+
+```bash
+yarn install
+yarn dev
+```
+
+Runs at:
+```
+http://localhost:5173
+```
+
+---
+
+## Design Decisions
+
+- Deterministic scoring ensures same input always produces same output.
+- Feasibility handled as a flag instead of separate category (to remain spec compliant).
+- Business logic separated from API layer for maintainability.
+- SQLite chosen for lightweight local deployment.
+
+---
+
+## Conclusion
+
+This system demonstrates:
+
+- Clean architecture separation
+- Deterministic algorithm design
+- Robust validation
+- Edge case handling
+- Full-stack integration
+- Production-style API structuring
