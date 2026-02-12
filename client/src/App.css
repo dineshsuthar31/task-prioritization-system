@@ -28,10 +28,9 @@
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   background-color: var(--bg-page);
-  overflow: hidden;
 }
 
 /* Header */
@@ -123,6 +122,11 @@
 }
 
 @media (min-width: 1024px) {
+  .app-container {
+    height: 100vh;
+    overflow: hidden;
+  }
+
   .app-content {
     grid-template-columns: 420px 1fr;
     align-items: stretch;

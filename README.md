@@ -163,14 +163,26 @@ Returns scored & categorized tasks.
 
 ---
 
-### CRUD Operations
+### CRUD & Special Operations
 
 | Method | Endpoint | Purpose |
 |--------|----------|----------|
-| GET | /tasks/ | List tasks |
-| POST | /tasks/ | Create task |
-| PATCH | /tasks/{id}/ | Update task |
-| DELETE | /tasks/{id}/ | Remove task |
+| GET | /tasks/ | List all tasks |
+| POST | /tasks/ | Create a new task |
+| GET | /tasks/{id}/ | Get task details |
+| PATCH | /tasks/{id}/ | Update task status/details |
+| DELETE | /tasks/{id}/ | Remove a task |
+| POST | /tasks/{id}/prioritize/ | **(New)** Prioritize a specific task by ID |
+
+---
+
+### Bulk Operations
+
+| Method | Endpoint | Purpose |
+|--------|----------|----------|
+| POST | /tasks/prioritize | Bulk prioritize (Stateless or DB-wide) |
+| POST | /tasks/validate | Separate valid/invalid tasks |
+| GET | /health | System health check |
 
 ---
 
@@ -187,11 +199,33 @@ Returns scored & categorized tasks.
 
 ## Setup Instructions
 
+# Clone repository
+git clone <repository-url>
+
 ### Backend
 
 ```bash
+cd task-prioritization-system/server
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Apply migrations
 python manage.py migrate
+
+
+# Run server
 python manage.py runserver
 ```
 
@@ -205,6 +239,7 @@ http://127.0.0.1:8000
 ### Frontend (Yarn)
 
 ```bash
+cd client
 yarn install
 yarn dev
 ```
