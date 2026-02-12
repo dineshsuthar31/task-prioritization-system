@@ -3,6 +3,8 @@ import axios from 'axios'
 import './App.css'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
+import { VscTerminalTmux } from "react-icons/vsc";
+
 
 function App() {
   const [tasks, setTasks] = useState([])
@@ -37,13 +39,26 @@ function App() {
     }
   };
 
+  const sortTasks = (taskList) => {
+    return [...taskList].sort((a, b) => {
+      if (a.is_completed !== b.is_completed) {
+        return a.is_completed ? 1 : -1;
+      }
+      if (b.priority_score !== a.priority_score) {
+        return b.priority_score - a.priority_score;
+      }
+      return a.deadline - b.deadline;
+    });
+  };
+
   const handleAddTask = async (newTask) => {
     setLoading(true);
     setError(null);
     try {
       const response = await axios.post('http://127.0.0.1:8000/tasks/', newTask);
-      // Add the returned task (with ID from DB) to the list
-      setTasks([...tasks, response.data]);
+      // Add the returned task (with ID and calculated priority) to the list
+      const updatedTasks = [...tasks, response.data];
+      setTasks(sortTasks(updatedTasks));
     } catch (err) {
       console.error("Error adding task:", err);
       setError("Failed to add task.");
@@ -65,8 +80,9 @@ function App() {
   const handleCompleteTask = async (taskId) => {
     try {
       await axios.patch(`http://127.0.0.1:8000/tasks/${taskId}/`, { is_completed: true });
-      // Refresh list to sort completed to bottom
-      fetchTasks();
+      // Update locally and re-sort
+      const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, is_completed: true } : t);
+      setTasks(sortTasks(updatedTasks));
     } catch (err) {
       console.error("Error completing task:", err);
       setError("Failed to complete task.");
@@ -78,8 +94,9 @@ function App() {
     setError(null);
     try {
       const response = await axios.post(`http://127.0.0.1:8000/tasks/${taskId}/prioritize/`);
-      // Update the specific task in the list
-      setTasks(tasks.map(t => t.id === taskId ? response.data : t));
+      // Update the specific task and re-sort
+      const updatedTasks = tasks.map(t => t.id === taskId ? response.data : t);
+      setTasks(sortTasks(updatedTasks));
     } catch (err) {
       console.error("Error prioritizing task:", err);
       setError("Failed to prioritize task.");
@@ -94,7 +111,6 @@ function App() {
     setLoading(true)
     setError(null)
     try {
-      // Call the prioritize endpoint which updates everything in DB and returns sorted list
       const response = await axios.post('http://127.0.0.1:8000/tasks/prioritize')
       setTasks(response.data)
     } catch (err) {
@@ -109,14 +125,13 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="header-content">
-          <h1><span className="brand-icon"></span> Task Prioritization System</h1>
+          <h1><span className="brand-icon"><VscTerminalTmux /></span> Task Prioritization System</h1>
           <div className="header-right">
             {systemHealth && (
               <span className={`health-status ${systemHealth}`}>
                 System: {systemHealth}
               </span>
             )}
-            <p className="app-subtitle">Optimize your workflow with intelligent task scoring.</p>
           </div>
         </div>
       </header>

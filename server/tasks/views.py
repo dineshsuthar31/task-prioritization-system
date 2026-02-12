@@ -12,13 +12,19 @@ class TaskListCreateView(generics.ListCreateAPIView):
     POST: Create a new task in DB.
     """
     def get_queryset(self):
-        # We generally want to see uncompleted tasks first, or all tasks?
-        # Let's show completed tasks at the bottom or filter them out in the frontend.
-        # But wait, user asked "kese complete kr skta hun", so we need to see them to complete them.
-        # Let's return all, but sorted.
         return Task.objects.all().order_by('is_completed', '-priority_score', 'deadline', '-importance')
     
     serializer_class = TaskSerializer
+
+    def perform_create(self, serializer):
+        # Calculate priority automatically when a task is created
+        task_data = serializer.validated_data
+        scored_task = calculate_priority(task_data)
+        serializer.save(
+            priority_score=scored_task['priority_score'],
+            category=scored_task['category'],
+            reason=scored_task.get('reason')
+        )
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
