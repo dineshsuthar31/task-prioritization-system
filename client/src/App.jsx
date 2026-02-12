@@ -3,6 +3,7 @@ import axios from 'axios'
 import './App.css'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
+import TaskFilters from './components/TaskFilters'
 import { VscTerminalTmux } from "react-icons/vsc";
 
 
@@ -11,6 +12,8 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [systemHealth, setSystemHealth] = useState(null)
+  const [priorityFilter, setPriorityFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState('Active')
 
   useEffect(() => {
     fetchTasks();
@@ -121,6 +124,26 @@ function App() {
     }
   }
 
+  const getFilteredTasks = () => {
+    return tasks.filter(task => {
+      // Priority filter - check against category names properly
+      const taskCategory = task.category || 'Pending';
+      const matchesPriority = priorityFilter === 'All' || taskCategory === priorityFilter;
+
+      // Status filter
+      let matchesStatus = true;
+      if (statusFilter === 'Active') {
+        matchesStatus = !task.is_completed;
+      } else if (statusFilter === 'Completed') {
+        matchesStatus = task.is_completed;
+      }
+
+      return matchesPriority && matchesStatus;
+    });
+  };
+
+  const filteredTasks = getFilteredTasks();
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -149,7 +172,21 @@ function App() {
         <section className="results-section">
           {loading && <p className="loading-text">Processing...</p>}
           {error && <p className="error-text">{error}</p>}
-          <TaskList tasks={tasks} onRemove={handleRemoveTask} onComplete={handleCompleteTask} onPrioritizeTask={handlePrioritizeTask} />
+
+          <TaskFilters
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            taskCount={filteredTasks.length}
+          />
+
+          <TaskList
+            tasks={filteredTasks}
+            onRemove={handleRemoveTask}
+            onComplete={handleCompleteTask}
+            onPrioritizeTask={handlePrioritizeTask}
+          />
         </section>
       </main>
     </div>

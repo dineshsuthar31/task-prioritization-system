@@ -38,8 +38,9 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
             <h3 className="list-title">Task List ({tasks.length})</h3>
             <div className="task-cards">
                 {tasks.map((task, index) => {
-                    const styles = getCategoryStyles(task.category, task.is_completed);
-                    const isPending = task.category === 'Pending';
+                    const category = task.category || 'Pending';
+                    const styles = getCategoryStyles(category, task.is_completed);
+                    const isPending = category === 'Pending';
                     const isCompleted = task.is_completed;
                     const isExpanded = expandedTaskId === task.id;
 
@@ -66,7 +67,7 @@ const TaskList = ({ tasks, onRemove, onComplete, onPrioritizeTask }) => {
                                             fontSize: '0.65rem',
                                             margin: 0
                                         }}>
-                                            {isCompleted ? 'Done' : task.category}
+                                            {isCompleted ? 'Done' : category}
                                         </span>
                                         {task.is_feasible === false && !isCompleted && (
                                             <div className="warning-badge-inline">
